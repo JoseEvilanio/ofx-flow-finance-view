@@ -1,4 +1,3 @@
-
 import { OFXData, Transaction, Account } from '@/types/ofx';
 
 export async function parseOFXFile(file: File): Promise<OFXData> {
@@ -29,7 +28,6 @@ export async function parseOFXFile(file: File): Promise<OFXData> {
 }
 
 function parseOFXContent(content: string): OFXData {
-  // Check if the file contains OFX data
   if (!content.includes('<OFX>') && !content.includes('<ofx>')) {
     throw new Error('Not a valid OFX file');
   }
@@ -40,9 +38,6 @@ function parseOFXContent(content: string): OFXData {
 
   let currentAccount: Account | null = null;
 
-  // Basic parsing of OFX content by looking for key tags
-  // Note: A production-level parser would need to be more robust
-  // Extract account info
   const accountMatches = content.match(/<ACCTID>([^<]+)/gi);
   const accountTypeMatches = content.match(/<ACCTTYPE>([^<]+)/gi);
   
@@ -61,23 +56,20 @@ function parseOFXContent(content: string): OFXData {
     data.accounts.push(currentAccount);
   }
 
-  // Extract bank info if available
   const bankIdMatches = content.match(/<BANKID>([^<]+)/i);
   if (bankIdMatches && bankIdMatches.length > 1 && currentAccount) {
     currentAccount.bankId = bankIdMatches[1];
   }
 
-  // Extract transactions
   const transactionSegments = content.match(/<STMTTRN>[\s\S]*?<\/STMTTRN>/gi) || [];
 
   for (const segment of transactionSegments) {
     const transaction: Partial<Transaction> = {
-      type: 'DEBIT', // Default
+      type: 'DEBIT',
       amount: 0,
       description: 'Unknown transaction'
     };
 
-    // Transaction ID
     const idMatch = segment.match(/<FITID>([^<]+)/i);
     if (idMatch && idMatch.length > 1) {
       transaction.id = idMatch[1];
@@ -85,26 +77,23 @@ function parseOFXContent(content: string): OFXData {
       transaction.id = `txn-${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    // Transaction date
     const dateMatch = segment.match(/<DTPOSTED>([^<]+)/i);
     if (dateMatch && dateMatch.length > 1) {
-      // OFX dates are often in format YYYYMMDD
       const dateStr = dateMatch[1];
       
       if (dateStr.length >= 8) {
         const year = parseInt(dateStr.substring(0, 4), 10);
-        const month = parseInt(dateStr.substring(4, 6), 10) - 1; // JS months are 0-based
+        const month = parseInt(dateStr.substring(4, 6), 10) - 1;
         const day = parseInt(dateStr.substring(6, 8), 10);
         
         transaction.date = new Date(year, month, day);
       } else {
-        transaction.date = new Date(); // Fallback to current date
+        transaction.date = new Date();
       }
     } else {
       transaction.date = new Date();
     }
 
-    // Transaction amount
     const amountMatch = segment.match(/<TRNAMT>([^<]+)/i);
     if (amountMatch && amountMatch.length > 1) {
       const amount = parseFloat(amountMatch[1]);
@@ -112,7 +101,6 @@ function parseOFXContent(content: string): OFXData {
       transaction.type = amount >= 0 ? 'CREDIT' : 'DEBIT';
     }
 
-    // Transaction description/memo
     const nameMatch = segment.match(/<NAME>([^<]+)/i);
     if (nameMatch && nameMatch.length > 1) {
       transaction.description = nameMatch[1];
@@ -121,19 +109,16 @@ function parseOFXContent(content: string): OFXData {
     const memoMatch = segment.match(/<MEMO>([^<]+)/i);
     if (memoMatch && memoMatch.length > 1) {
       transaction.memo = memoMatch[1];
-      // If no description was found, use memo as the description
       if (!transaction.description || transaction.description === 'Unknown transaction') {
         transaction.description = memoMatch[1];
       }
     }
 
     if (currentAccount && transaction.id) {
-      // Add the transaction to the current account
       currentAccount.transactions.push(transaction as Transaction);
     }
   }
 
-  // Sort transactions by date (most recent first)
   data.accounts.forEach(account => {
     account.transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
   });
@@ -141,20 +126,59 @@ function parseOFXContent(content: string): OFXData {
   return data;
 }
 
-// Helper function to format currency
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(navigator.language || 'en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: getCurrencyFromLocale(navigator.language || 'en-US'),
     minimumFractionDigits: 2,
   }).format(amount);
 };
 
-// Helper function to format dates
 export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(navigator.language || 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
   }).format(date);
 };
+
+function getCurrencyFromLocale(locale: string): string {
+  const countryCode = locale.split('-')[1] || locale;
+  
+  const currencyMap: Record<string, string> = {
+    'US': 'USD',
+    'GB': 'GBP',
+    'UK': 'GBP',
+    'CA': 'CAD',
+    'AU': 'AUD',
+    'NZ': 'NZD',
+    'IN': 'INR',
+    'JP': 'JPY',
+    'CN': 'CNY',
+    'BR': 'BRL',
+    'MX': 'MXN',
+    'ZA': 'ZAR',
+    'RU': 'RUB',
+    'KR': 'KRW',
+    'SG': 'SGD',
+    'MY': 'MYR',
+    'TH': 'THB',
+    'ID': 'IDR',
+    'AE': 'AED',
+    'SA': 'SAR',
+    'DE': 'EUR',
+    'FR': 'EUR',
+    'IT': 'EUR',
+    'ES': 'EUR',
+    'PT': 'EUR',
+    'NL': 'EUR',
+    'BE': 'EUR',
+    'AT': 'EUR',
+    'FI': 'EUR',
+    'IE': 'EUR',
+    'GR': 'EUR',
+    'LU': 'EUR'
+  };
+  
+  return currencyMap[countryCode.toUpperCase()] || 'USD';
+}
