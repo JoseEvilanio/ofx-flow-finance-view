@@ -1,4 +1,5 @@
 import { OFXData, Transaction, Account } from '@/types/ofx';
+import { getDefaultLocale } from './localeUtils';
 
 export async function parseOFXFile(file: File): Promise<OFXData> {
   return new Promise((resolve, reject) => {
@@ -127,15 +128,15 @@ function parseOFXContent(content: string): OFXData {
 }
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat(navigator.language || 'en-US', {
+  return new Intl.NumberFormat(getDefaultLocale(), {
     style: 'currency',
-    currency: getCurrencyFromLocale(navigator.language || 'en-US'),
+    currency: getCurrencyFromLocale(getDefaultLocale()),
     minimumFractionDigits: 2,
   }).format(amount);
 };
 
 export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat(navigator.language || 'en-US', {
+  return new Intl.DateTimeFormat(getDefaultLocale(), {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
