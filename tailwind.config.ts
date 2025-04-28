@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Financial specific colors
+				finance: {
+					credit: '#4ade80', // Green for credits/income
+					debit: '#ef4444',  // Red for debits/expenses
+					neutral: '#6b7280', // Gray for neutral transactions
+					highlight: '#3b82f6', // Blue for highlights/selections
+					muted: '#f3f4f6',  // Light gray for backgrounds
 				}
 			},
 			borderRadius: {
@@ -84,11 +93,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: {
+						opacity: '0'
+					},
+					to: {
+						opacity: '1'
+					}
+				},
+				'spin': {
+					from: {
+						transform: 'rotate(0deg)'
+					},
+					to: {
+						transform: 'rotate(360deg)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'spin': 'spin 1s linear infinite'
 			}
 		}
 	},
