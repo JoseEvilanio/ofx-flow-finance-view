@@ -69,6 +69,7 @@ app.post('/api/parse-ofx', upload.single('ofxFile'), (req, res) => {
     };
     
     res.json(formattedData);
+    // Não retornamos o res.json() diretamente para evitar o erro de tipagem
   } catch (error) {
     console.error('Erro ao processar arquivo OFX:', error);
     res.status(500).json({ 
