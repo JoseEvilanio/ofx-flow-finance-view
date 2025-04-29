@@ -32,7 +32,8 @@ app.use(express.json());
 app.post('/api/parse-ofx', upload.single('ofxFile'), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      return;
     }
 
     const filePath = req.file.path;
@@ -69,21 +70,21 @@ app.post('/api/parse-ofx', upload.single('ofxFile'), (req, res) => {
     };
     
     res.json(formattedData);
-    return; // Adicionando return explícito para evitar o erro de tipagem
+    return;
   } catch (error) {
     console.error('Erro ao processar arquivo OFX:', error);
     res.status(500).json({ 
       error: 'Erro ao processar arquivo OFX',
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
-    return; // Adicionando return explícito para evitar o erro de tipagem
+    return;
   }
 });
 
 // Endpoint de verificação de saúde da API
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });
-  return; // Adicionando return explícito para evitar o erro de tipagem
+  return;
 });
 
 // Exportando o app para uso em servidor.ts
