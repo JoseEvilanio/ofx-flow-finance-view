@@ -1,3 +1,4 @@
+
 import { OFXData, Transaction, Account } from '@/types/ofx';
 import { getDefaultLocale } from './localeUtils';
 
@@ -28,7 +29,8 @@ export async function parseOFXFile(file: File): Promise<OFXData> {
   });
 }
 
-function parseOFXContent(content: string): OFXData {
+// Exportando a função parseOFXContent para uso direto com strings
+export function parseOFXContent(content: string): OFXData {
   if (!content.includes('<OFX>') && !content.includes('<ofx>')) {
     throw new Error('Not a valid OFX file');
   }
